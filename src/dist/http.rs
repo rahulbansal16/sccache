@@ -713,13 +713,13 @@ mod server {
                             } else {
                                 $request.remote_addr().ip()
                             };
-                            if server_id.addr().ip() != origin_ip {
-                                trace!("server ip: {:?}", server_id.addr().ip());
-                                trace!("request ip: {:?}", $request.remote_addr().ip());
-                                return make_401("invalid_bearer_token_mismatched_address");
-                            } else {
+                            // if server_id.addr().ip() != origin_ip {
+                                // trace!("server ip: {:?}", server_id.addr().ip());
+                                // trace!("request ip: {:?}", $request.remote_addr().ip());
+                                // return make_401("invalid_bearer_token_mismatched_address");
+                            // } else {
                                 server_id
-                            }
+                            // }
                         }
                         None => return make_401("invalid_bearer_token"),
                     }
@@ -971,7 +971,7 @@ mod server {
             info!("Server listening for clients on {}", public_addr);
             let request_count = atomic::AtomicUsize::new(0);
 
-            let server = rouille::Server::new_ssl(public_addr, move |request| {
+            let server = rouille::Server::new_ssl("0.0.0.0:10501", move |request| {
                 let req_id = request_count.fetch_add(1, atomic::Ordering::SeqCst);
                 trace!("Req {} ({}): {:?}", req_id, request.remote_addr(), request);
                 let response = (|| router!(request,
