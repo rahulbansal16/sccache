@@ -4,8 +4,8 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "environment": [
-        {"name":"AWS_REGION", "value":"us-east-1"},
-        {"name":"SLS_DEBUG", "value":"*"}
+        {"name":"SCCACHE_LOG", "value":"trace"},
+    //     // {"name":"SLS_DEBUG", "value":"*"}
     ],
     "configurations": [
         {
