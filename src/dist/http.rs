@@ -1232,7 +1232,9 @@ mod client {
         fn do_get_status(&self) -> SFuture<SchedulerStatusResult> {
             let scheduler_url = self.scheduler_url.clone();
             let url = urls::scheduler_status(&scheduler_url);
+            debug!("The url is {:?}", url);
             let req = self.client.lock().unwrap().get(url);
+            debug!("The req is {:?}", req);
             Box::new(self.pool.spawn_fn(move || bincode_req(req)))
         }
         fn do_submit_toolchain(

@@ -1674,9 +1674,9 @@ impl Compilation for RustCompilation {
             path_transformer,
             rlib_dep_reader,
         });
+        debug!("Converting the path_transformer to the dist packager toolchain_packager is  {:?}", sysroot);
         let toolchain_packager = Box::new(RustToolchainPackager { sysroot });
         let outputs_rewriter = Box::new(RustOutputsRewriter { dep_info });
-
         Ok((inputs_packager, toolchain_packager, outputs_rewriter))
     }
 

@@ -286,6 +286,7 @@ pub trait Storage {
 /// Get a suitable `Storage` implementation from configuration.
 #[allow(clippy::cognitive_complexity)] // TODO simplify!
 pub fn storage_from_config(config: &Config, pool: &ThreadPool) -> Arc<dyn Storage> {
+    debug!("The value in the storage config is {:?}", config);
     for cache_type in config.caches.iter() {
         match *cache_type {
             CacheType::Azure(config::AzureCacheConfig) => {

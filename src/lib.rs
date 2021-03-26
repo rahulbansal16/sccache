@@ -66,6 +66,7 @@ const LOGGING_ENV: &str = "SCCACHE_LOG";
 
 pub fn main() {
     init_logging();
+    debug!("In the main.rs");
     std::process::exit(match cmdline::parse() {
         Ok(cmd) => match commands::run_command(cmd) {
             Ok(s) => s,

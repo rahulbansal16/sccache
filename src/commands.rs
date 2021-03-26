@@ -277,6 +277,7 @@ fn connect_or_start_server(port: u16) -> Result<ServerConnection> {
         {
             // If the connection was refused we probably need to start
             // the server.
+            // debug!("Connection to server refused or timeout so starting a server process");
             match run_server_process()? {
                 ServerStartup::Ok { port: actualport } => {
                     if port != actualport {
@@ -480,6 +481,7 @@ fn handle_compile_response<T>(
 where
     T: CommandCreatorSync,
 {
+    // debug!("handle_compile_response the response {:?}", response);
     match response {
         CompileResponse::CompileStarted => {
             debug!("Server sent CompileStarted");

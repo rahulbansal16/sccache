@@ -76,6 +76,7 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
             "-s --show-stats  'show cache statistics'
              --start-server   'start background server'
              --stop-server    'stop background server'
+             --internal-start-server 'Starts internal server'
              -z, --zero-stats 'zero statistics counters'
              --dist-auth      'authenticate for distributed compilation'
              --dist-status    'show status of the distributed client'"
@@ -98,11 +99,17 @@ pub fn parse() -> Result<Command> {
     let cwd =
         env::current_dir().context("sccache: Couldn't determine current working directory")?;
     // The internal start server command is passed in the environment.
-    let internal_start_server = match env::var("SCCACHE_START_SERVER") {
-        Ok(val) => val == "1",
-        Err(_) => false,
-    };
+    // let internal_start_server = match env::var("SCCACHE_START_SERVER") {
+    //     Ok(val) => val == "1",
+    //     Err(_) => false,
+    // };
     let mut args: Vec<_> = env::args_os().collect();
+
+    let apps_arg = get_app();
+    // debug!("The value of the apps_arg is {:?}", apps_arg);
+    let matches = apps_arg.get_matches_from(&args);
+    let internal_start_server = matches.is_present("internal-start-server");
+    
     if !internal_start_server {
         if let Ok(exe) = env::current_exe() {
             match exe
@@ -141,7 +148,6 @@ pub fn parse() -> Result<Command> {
             }
         }
     }
-    let matches = get_app().get_matches_from(args);
 
     let show_stats = matches.is_present("show-stats");
     let start_server = matches.is_present("start-server");

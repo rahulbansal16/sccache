@@ -194,6 +194,7 @@ impl DistClientContainer {
 #[cfg(feature = "dist-client")]
 impl DistClientContainer {
     fn new(config: &Config, pool: &ThreadPool) -> Self {
+        debug!("In the DistClientContainer pool new method");
         let config = DistClientConfig {
             pool: pool.clone(),
             scheduler_url: config.dist.scheduler_url.clone(),
@@ -256,10 +257,12 @@ impl DistClientContainer {
     }
 
     fn get_client(&self) -> Result<Option<Arc<dyn dist::Client>>> {
+        debug!("In the get_client method of the dist");
         let mut guard = self.state.lock();
         let state = guard.as_mut().unwrap();
         let state: &mut DistClientState = &mut **state;
         Self::maybe_recreate_state(state);
+        // debug!("The state for the dist client {:?}", state);
         let res = match state {
             DistClientState::Some(_, dc) => Ok(Some(dc.clone())),
             DistClientState::Disabled | DistClientState::RetryCreateAt(_, _) => Ok(None),
@@ -275,6 +278,7 @@ impl DistClientContainer {
             *state =
                 DistClientState::RetryCreateAt(config, Instant::now() - Duration::from_secs(1));
         }
+        debug!("Returning the state from the get_client method");
         res
     }
 
@@ -288,6 +292,7 @@ impl DistClientContainer {
                 _ => unreachable!(),
             };
             info!("Attempting to recreate the dist client");
+            debug!("Attempting to recreate the dist client");
             *state = Self::create_state(*config)
         }
     }
@@ -330,6 +335,7 @@ impl DistClientContainer {
             Some(ref addr) => {
                 let url = addr.to_url();
                 info!("Enabling distributed sccache to {}", url);
+                debug!("Enabling distributed sccache to {}", url);
                 let auth_token = match &config.auth {
                     config::DistAuth::Token { token } => Ok(token.to_owned()),
                     config::DistAuth::Oauth2CodeGrantPKCE { auth_url, .. }
@@ -404,12 +410,12 @@ pub fn start_server(config: &Config, port: u16) -> Result<()> {
         dist_client,
         storage,
     );
-    let notify = env::var_os("SCCACHE_STARTUP_NOTIFY");
+    // let notify = env::var_os("SCCACHE_STARTUP_NOTIFY");
     match res {
         Ok(srv) => {
             let port = srv.port();
             info!("server started, listening on port {}", port);
-            notify_server_startup(&notify, ServerStartup::Ok { port })?;
+            // notify_server_startup(&notify, ServerStartup::Ok { port })?;
             srv.run(future::empty::<(), ()>())?;
             Ok(())
         }
@@ -417,11 +423,11 @@ pub fn start_server(config: &Config, port: u16) -> Result<()> {
             error!("failed to start server: {}", e);
             match e.downcast_ref::<io::Error>() {
                 Some(io_err) if io::ErrorKind::AddrInUse == io_err.kind() => {
-                    notify_server_startup(&notify, ServerStartup::AddrInUse)?;
+                    // notify_server_startup(&notify, ServerStartup::AddrInUse)?;
                 }
                 _ => {
-                    let reason = e.to_string();
-                    notify_server_startup(&notify, ServerStartup::Err { reason })?;
+                    // let reason = e.to_string();
+                    // notify_server_startup(&notify, ServerStartup::Err { reason })?;
                 }
             };
             Err(e)
@@ -703,7 +709,7 @@ where
 
         let res: SFuture<Response> = match req.into_inner() {
             Request::Compile(compile) => {
-                debug!("handle_client: compile");
+                debug!("handle_client: compile {:?}", compile);
                 self.stats.borrow_mut().compile_requests += 1;
                 return self.handle_compile(compile);
             }
@@ -845,12 +851,13 @@ where
     /// the inital information and an optional body which will eventually
     /// contain the results of the compilation.
     fn handle_compile(&self, compile: Compile) -> SFuture<SccacheResponse> {
+        debug!("In the handle_compile method {:?}", compile);
         let exe = compile.exe;
         let cmd = compile.args;
         let cwd: PathBuf = compile.cwd.into();
         let env_vars = compile.env_vars;
+        debug!("In the handle_compile_method value of the env_vars is {:?}", env_vars);
         let me = self.clone();
-
         Box::new(
             self.compiler_info(exe.into(), cwd.clone(), &env_vars)
                 .map(move |info| me.check_compiler(info, cmd, cwd, env_vars)),
@@ -885,24 +892,33 @@ where
                     cwd.clone(),
                     env.as_slice(),
                 );
-                Box::new(fut.then(|res: Result<_>| Ok(res.ok())))
+                Box::new(fut.then(|res: Result<_>| {
+                    debug!("The resolve_w_proxy is {:?}", res);
+                    Ok(res.ok())
+                }))
             } else {
                 f_ok(None)
             }
         };
 
+
         // use the supplied compiler path as fallback, lookup its modification time too
         let w_fallback = resolve_w_proxy.then(move |res: Result<Option<(PathBuf, FileTime)>>| {
             let opt = match res {
-                Ok(Some(x)) => Some(x), // TODO resolve the path right away
+                Ok(Some(x)) => {
+                    debug!("Some match occured in the path, {:?}", x);
+                    Some(x)
+                }, // TODO resolve the path right away
                 _ => {
                     // fallback to using the path directly
+                    debug!("Falling back to the supplied compiler path");
                     metadata(&path2)
                         .map(|attr| FileTime::from_last_modification_time(&attr))
                         .ok()
                         .map(move |filetime| (path2, filetime))
                 }
             };
+            debug!("The value of the opt is {:?}", opt);
             f_ok(opt)
         });
 
@@ -912,7 +928,10 @@ where
 
             let dist_info = match me1.dist_client.get_client() {
                 Ok(Some(ref client)) => {
+                    debug!("The resolved compiler path is {:?}", resolved_compiler_path);
+                    debug!("Got the dist client");
                     if let Some(archive) = client.get_custom_toolchain(&resolved_compiler_path) {
+                        debug!("Reading the value of the archive {:?}", archive);
                         match metadata(&archive)
                             .map(|attr| FileTime::from_last_modification_time(&attr))
                         {
@@ -920,10 +939,14 @@ where
                             _ => None,
                         }
                     } else {
+                        debug!("There is no archive");
                         None
                     }
                 }
-                _ => None,
+                _ => {
+                    debug!("No dist client");
+                    None
+                },
             };
 
             let opt = match me1.compilers.borrow().get(&resolved_compiler_path) {

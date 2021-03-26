@@ -19,6 +19,8 @@ use byteorder::{BigEndian, ByteOrder};
 use retry::{delay::Fixed, retry};
 use std::io::{self, BufReader, BufWriter, Read};
 use std::net::TcpStream;
+// use std::fmt::Debug;
+// use std::fmt::Formatter;
 
 /// A connection to an sccache server.
 pub struct ServerConnection {
@@ -61,6 +63,12 @@ impl ServerConnection {
         Ok(bincode::deserialize(&data)?)
     }
 }
+
+// impl Debug for ServerConnection {
+//     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+//         write!(f, "Hi")
+//     }
+// }
 
 /// Establish a TCP connection to an sccache server listening on `port`.
 pub fn connect_to_server(port: u16) -> io::Result<ServerConnection> {

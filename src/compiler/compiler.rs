@@ -501,11 +501,16 @@ where
                 .map(|(_key, path)| path_transformer.as_dist_abs(&cwd.join(path)))
                 .collect::<Option<_>>()
                 .context("Failed to adapt an output path for distributed compile")?;
-            compilation.into_dist_packagers(path_transformer)
-                .map(|packagers| (dist_compile_cmd, packagers, dist_output_paths))
+                debug!("The value of the path_transformer is {:?}", path_transformer);
+                compilation.into_dist_packagers(path_transformer)
+                .map(|packagers| {
+                    // debug!("The value after converting the path_transformer to dist_packagers is {:?}", packagers);
+                    (dist_compile_cmd, packagers, dist_output_paths)
+                })
         })
         .and_then(move |(mut dist_compile_cmd, (inputs_packager, toolchain_packager, outputs_rewriter), dist_output_paths)| {
             debug!("[{}]: Identifying dist toolchain for {:?}", compile_out_pretty2, local_executable);
+            // debug!("The value of the inputs_packager {:?}", inputs_packager );
             dist_client.put_toolchain(&local_executable, &weak_toolchain_key, toolchain_packager)
                 .and_then(|(dist_toolchain, maybe_dist_compile_executable)| {
                     let mut tc_archive = None;

@@ -42,7 +42,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["--dist-status"],
+            "args": ["--internal-start-server"],
             "cwd": "${workspaceFolder}"
         },
         {
