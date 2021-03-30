@@ -485,6 +485,7 @@ where
             return f_err(e);
         }
     };
+    debug!("The value of the compile_cmd {:?} dist_compile_cmd {:?} cacheable is {:?}", compile_cmd, dist_compile_cmd, cacheable);
 
     debug!("[{}]: Attempting distributed compilation", out_pretty);
     let compile_out_pretty = out_pretty.clone();
