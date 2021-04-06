@@ -914,6 +914,7 @@ impl ServerIncoming for Server {
         outputs: Vec<String>,
         inputs_rdr: InputsReader,
     ) -> Result<RunJobResult> {
+        info!("In the handle_run_job method with the following information {:?}", command);
         debug!("In the handle_run_job method with the following information {:?}", command);
         requester
             .do_update_job_state(job_id, JobState::Started)
@@ -922,6 +923,7 @@ impl ServerIncoming for Server {
         let res = match tc {
             None => Ok(RunJobResult::JobNotFound),
             Some(tc) => {
+                info!("Found a toolchain {:?}", tc);
                 debug!("Found a toolchain {:?}", tc);
                 match self
                     .builder
