@@ -183,7 +183,7 @@ mod client {
             weak_key: &str,
             toolchain_packager: Box<dyn ToolchainPackager>,
         ) -> Result<(Toolchain, Option<(String, PathBuf)>)> {
-            debug!("In the put_toolchain method");
+            debug!("In the put_toolchain method for the compiler_path {:?}", compiler_path);
             if self.disabled_toolchains.contains(compiler_path) {
                 debug!("Toolchain distribution for is disabled {}",compiler_path.display());
                 bail!(
