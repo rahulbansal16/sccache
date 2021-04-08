@@ -716,7 +716,8 @@ mod server {
                             if server_id.addr().ip() != origin_ip {
                                 trace!("server ip: {:?}", server_id.addr().ip());
                                 trace!("request ip: {:?}", $request.remote_addr().ip());
-                                return make_401("invalid_bearer_token_mismatched_address");
+                                server_id
+                                // return make_401("invalid_bearer_token_mismatched_address");
                             } else {
                                 server_id
                             }
@@ -971,7 +972,7 @@ mod server {
             info!("Server listening for clients on {}", public_addr);
             let request_count = atomic::AtomicUsize::new(0);
 
-            let server = rouille::Server::new_ssl(public_addr, move |request| {
+            let server = rouille::Server::new_ssl("0.0.0.0:10501", move |request| {
                 let req_id = request_count.fetch_add(1, atomic::Ordering::SeqCst);
                 trace!("Req {} ({}): {:?}", req_id, request.remote_addr(), request);
                 let response = (|| router!(request,
@@ -1231,7 +1232,9 @@ mod client {
         fn do_get_status(&self) -> SFuture<SchedulerStatusResult> {
             let scheduler_url = self.scheduler_url.clone();
             let url = urls::scheduler_status(&scheduler_url);
+            debug!("The url is {:?}", url);
             let req = self.client.lock().unwrap().get(url);
+            debug!("The req is {:?}", req);
             Box::new(self.pool.spawn_fn(move || bincode_req(req)))
         }
         fn do_submit_toolchain(

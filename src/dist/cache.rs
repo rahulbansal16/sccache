@@ -60,6 +60,7 @@ mod client {
             cache_size: u64,
             toolchain_configs: &[config::DistToolchainConfig],
         ) -> Result<Self> {
+            debug!("In the clientTool chain method");
             let cache_dir = cache_dir.to_owned();
             fs::create_dir_all(&cache_dir)
                 .context("failed to create top level toolchain cache dir")?;
@@ -92,6 +93,7 @@ mod client {
             let mut custom_toolchain_paths = HashMap::new();
             let mut disabled_toolchains = HashSet::new();
             for ct in toolchain_configs.iter() {
+                debug!("Iterating over the toolchain_configs {:?}", ct);
                 match ct {
                     config::DistToolchainConfig::PathOverride {
                         compiler_executable,
@@ -181,7 +183,9 @@ mod client {
             weak_key: &str,
             toolchain_packager: Box<dyn ToolchainPackager>,
         ) -> Result<(Toolchain, Option<(String, PathBuf)>)> {
+            debug!("In the put_toolchain method for the compiler_path {:?}", compiler_path);
             if self.disabled_toolchains.contains(compiler_path) {
+                debug!("Toolchain distribution for is disabled {}",compiler_path.display());
                 bail!(
                     "Toolchain distribution for {} is disabled",
                     compiler_path.display()
@@ -213,18 +217,24 @@ mod client {
             &self,
             compiler_path: &Path,
         ) -> Option<Result<(Toolchain, String, PathBuf)>> {
+            debug!("In the get_custom_toolchain method for the path {:?} and custom_toolchain_paths are {:?}", compiler_path, self.custom_toolchain_paths);
             match self
                 .custom_toolchain_paths
                 .lock()
                 .unwrap()
                 .get_mut(compiler_path)
             {
-                Some((custom_tc, Some(tc))) => Some(Ok((
-                    tc.clone(),
-                    custom_tc.compiler_executable.clone(),
-                    custom_tc.archive.clone(),
-                ))),
+                Some((custom_tc, Some(tc))) =>{ 
+                    debug!("There is some custom_tc and tc {:?}", custom_tc);
+                    Some(Ok((
+                        tc.clone(),
+                        custom_tc.compiler_executable.clone(),
+                        custom_tc.archive.clone(),
+                    )))
+                },
                 Some((custom_tc, maybe_tc @ None)) => {
+                    debug!("There is some cutom_tc {:?} and maybe_tc  {:?}", custom_tc, maybe_tc);
+                    debug!("The value of the custom_tc archive is {:?}", custom_tc.archive);
                     let archive_id = match path_key(&custom_tc.archive) {
                         Ok(archive_id) => archive_id,
                         Err(e) => return Some(Err(e)),

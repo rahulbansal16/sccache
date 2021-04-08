@@ -421,6 +421,7 @@ pub fn try_read_config_file<T: DeserializeOwned>(path: &Path) -> Result<Option<T
     };
 
     let mut string = String::new();
+    debug!("The file read is: {:#?}", file);
     match file.read_to_string(&mut string) {
         Ok(_) => (),
         Err(e) => {
