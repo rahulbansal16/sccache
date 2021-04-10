@@ -10,6 +10,12 @@
     "configurations": [
         {
             "type": "lldb",
+            "request": "attach",
+            "name": "Attach",
+            "pid": "1216" // use ${command:pickProcess} to pick other users' processes
+        },
+        {
+            "type": "lldb",
             "request": "launch",
             "name": "Debug unit tests in library 'sccache'",
             "cargo": {
@@ -30,19 +36,22 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'sccache'",
+            "name": "Debug Dist executable 'sccache'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=sccache",
+                    "--bin=sccache-dist",
+                    "--features=dist-server",
                     "--package=sccache"
                 ],
                 "filter": {
-                    "name": "sccache",
-                    "kind": "bin"
+                    "name": "sccache-dist",
+                    "kind": "bin",
+                    "root": "true",
+                    "sudo": "true"
                 }
             },
-            "args": ["--internal-start-server"],
+            "args": ["server","--config", "/home/rabans/server.config","--syslog", "trace"],
             "cwd": "${workspaceFolder}"
         },
         {
@@ -177,5 +186,7 @@
             "args": [],
             "cwd": "${workspaceFolder}"
         }
-    ]
+    ],
+    "sudo": true,
+    "stopOnEntry": true
 }
