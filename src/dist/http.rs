@@ -972,7 +972,7 @@ mod server {
             info!("Server listening for clients on {}", public_addr);
             let request_count = atomic::AtomicUsize::new(0);
 
-            let server = rouille::Server::new_ssl("0.0.0.0:10501", move |request| {
+            let server = rouille::Server::new("0.0.0.0:10501", move |request| {
                 let req_id = request_count.fetch_add(1, atomic::Ordering::SeqCst);
                 trace!("Req {} ({}): {:?}", req_id, request.remote_addr(), request);
                 let response = (|| router!(request,
@@ -1019,7 +1019,8 @@ mod server {
                 ))();
                 trace!("Res {}: {:?}", req_id, response);
                 response
-            }, cert_pem, privkey_pem).map_err(|e| anyhow!(format!("Failed to start http server for sccache server: {}", e)))?;
+            }).unwrap();
+            // cert_pem, privkey_pem).map_err(|e| anyhow!(format!("Failed to start http server for sccache server: {}", e)))?;
 
             // This limit is rouille's default for `start_server_with_pool`, which
             // we would use, except that interface doesn't permit any sort of
