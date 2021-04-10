@@ -57,6 +57,24 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug executable 'sccache'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=sccache",
+                    "--package=sccache"
+                ],
+                "filter": {
+                    "name": "sccache",
+                    "kind": "bin"
+                }
+            },
+            "args": ["--internal-start-server"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug unit tests in executable 'sccache'",
             "cargo": {
                 "args": [
