@@ -75,6 +75,7 @@ mod common {
     ) -> Result<T> {
         // Work around tiny_http issue #151 by disabling HTTP pipeline with
         // `Connection: close`.
+        debug!("In the bincode_req method about to send the request");
         let mut res = req.set_header(header::Connection::close()).send()?;
         let status = res.status();
         let mut body = vec![];
@@ -1245,10 +1246,12 @@ mod client {
             match self.tc_cache.get_toolchain(&tc) {
                 Ok(Some(toolchain_file)) => {
                     let url = urls::server_submit_toolchain(job_alloc.server_id, job_alloc.job_id);
+                    debug!("In the submit toolchain request about to submit the toolchain, the url is {:?}", url);
                     let req = self.client.lock().unwrap().post(url);
 
                     Box::new(self.pool.spawn_fn(move || {
                         let req = req.bearer_auth(job_alloc.auth.clone()).body(toolchain_file);
+                        debug!("The request for do_submit_toolchain is:{:?}", req);
                         bincode_req(req)
                     }))
                 }

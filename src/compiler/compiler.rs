@@ -457,11 +457,14 @@ where
 {
     use futures::future;
     use std::io;
+    debug!("In the dist_or_local_compile method");
 
     let rewrite_includes_only = match dist_client {
         Ok(Some(ref client)) => client.rewrite_includes_only(),
         _ => false,
     };
+
+    debug!("dist_or_local_compile, The value of the rewrite_includes_only {:?}", rewrite_includes_only);
     let mut path_transformer = dist::PathTransformer::default();
     let compile_commands = compilation
         .generate_compile_commands(&mut path_transformer, rewrite_includes_only)
@@ -470,10 +473,12 @@ where
         Ok(cmds) => cmds,
         Err(e) => return f_err(e),
     };
+    debug!("");
 
     let dist_client = match dist_client {
         Ok(Some(dc)) => dc,
         Ok(None) => {
+            // This is the last point till where the final compilation happens
             debug!("[{}]: Compiling locally", out_pretty);
             return Box::new(
                 compile_cmd
